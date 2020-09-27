@@ -1,8 +1,8 @@
-AccessControl:private,protected,public
-Modifier:abstract,class,extends,final,implements,interface,native,new,static,strictfp,synchronized,transient,volatile
-ProgramControl:break,continue,return,do,while,if,else,for,instanceof,switch,case,default
-ErrorHandle:try,catch,throw,throws,finally
-PackageCorrelation:import,package
-BasicTypes:boolean,byte,char,double,float,int,long,short,null,true,false
-VariableReference:super,this,void
-ReservedWords:goto,const
+AccessControl:private,protected,public#访问控制
+Modifier:abstract,class,extends,final,implements,interface,native,new,static,strictfp,synchronized,transient,volatile#类、方法和变量修饰符
+ProgramControl:break,continue,return,do,while,if,else,for,instanceof,switch,case,default#程序控制
+ErrorHandle:try,catch,throw,throws,finally#错误处理
+PackageCorrelation:import,package#包相关
+BasicTypes:boolean,byte,char,double,float,int,long,short,null,true,false#基本类型
+VariableReference:super,this,void#变量引用
+ReservedWords:goto,const#保留字
