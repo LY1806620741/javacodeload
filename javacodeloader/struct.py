@@ -1,4 +1,30 @@
 from javacodeloader.keyword import KeyWordType
+import re
+
+class Util:
+    @classmethod
+    def getblock(self,string):
+        """获取字符块"""
+        return re.findall("[a-z0-9.@\u4e00-\u9fa5()\"']+",string)
+    @classmethod
+    def getlayer(self,content):
+        """获取层级闭包"""
+        root=Closure()
+        layer=root
+        temp=""
+        for c in content:
+            if c == "{":
+                layer=Closure(layer)
+                layer.titile=temp
+                temp=""
+            elif c== "}":
+                layer=layer.parent
+            elif c== ";":
+                layer.child.append(temp)
+                temp=""
+            else:
+                temp+=c
+        return root
 class JavaBase:
     """基础"""
     def __init__(self,name=None,value=None):
@@ -12,11 +38,13 @@ class JavaBase:
         return self.value
     def setValue(self,value):
         self.value=value
+    def __repr__(self):
+        return "class [%s] %s" % (type(self).__name__, self.__dict__)
 class AccessControl(JavaBase):
     """权限"""
     def __init__(self,access_control=None):
         """默认权限是default"""
-        super(JavaBase, self).__init__()
+        super(AccessControl, self).__init__()
         self.access_control=access_control
     def isPublic(self):
         return self.access_control==KeyWordType.AccessControl.Public
@@ -52,7 +80,7 @@ class ClassLoader:
 class JavaClass(AccessControl):
     """java类信息"""
     def __init__(self,path,classLoader=None):
-        super(AccessControl, self).__init__()
+        super(JavaClass, self).__init__()
         self.classLoader=classLoader
         self.filepath=path
         self.Imports=[]
@@ -61,32 +89,34 @@ class JavaClass(AccessControl):
         self.Annotations=[]
         self.innerClass=[]
     def doimport(self,line):
-        self.importlist.append(line)
+        self.Imports.append(line)
+    def doAnnotation(self,ann):
+        self.Annotations.append(ann)
     @classmethod
-    def static_load_content(self,content):
+    def static_load_content(self,instance,content):
         """静态方法加载"""
         #DFA or {}load
         #分层
-        root=Closure()
-        layer=root
-        temp=""
-        for c in content:
-            if c == "{":
-                layer=Closure(layer)
-                layer.titile=temp
-                temp=""
-            elif c== "}":
-                layer=layer.parent
-            elif c== ";":
-                layer.child.append(temp)
-                temp=""
-            else:
-                temp+=c
-        print(root.child)
+        root=Util.getlayer(content)
+        #读取第一层类和引用
+        for i in root.child:
+            if isinstance(i,str):#读取引用
+                i=Util.getblock(i)
+                if (i[0]==KeyWordType.PackageCorrelation.Import):
+                    instance.doimport(i[1])
+            else:#类读取
+                for j in Util.getblock(i.titile):
+                    if j.startswith("@"):#类注解
+                        p=j.find("(")
+                        if p>1:
+                            instance.doAnnotation(JavaAnnotation(j[1:p],j[p+1:-1]))
+                        else:
+                            instance.doAnnotation(JavaAnnotation(j[1:]))
+        print(instance.Annotations)
         pass
     def loadContent(self,content):
         """加载内容"""
-        self.static_load_content(content)
+        self.static_load_content(self,content)
         return self
     def print(self):
         pass
@@ -98,8 +128,9 @@ class JavaMethod(AccessControl):
 class JavaFiled(AccessControl):
     def __init__(self):
         pass
-class Annotation(JavaBase):
-    pass
+class JavaAnnotation(JavaBase):
+    def __init__(self,name=None,value=None):
+        super(JavaAnnotation, self).__init__(name,value)
 
 
 
